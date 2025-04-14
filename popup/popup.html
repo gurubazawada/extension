@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bestimate</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <div class="investment-score">
+      <div class="gauge">
+        <div class="gauge-circle">
+          <svg viewBox="0 0 120 120" class="gauge-svg">
+            <circle class="gauge-background" cx="60" cy="60" r="54" />
+            <circle class="gauge-value" cx="60" cy="60" r="54" />
+            <text class="gauge-text" x="60" y="62" text-anchor="middle">0</text>
+            <text class="gauge-score-label" x="60" y="76" text-anchor="middle">Score</text>
+          </svg>
+        </div>
+        <div class="gauge-label">Investment Score</div>
+      </div>
+      <div class="property-highlights">
+        <div class="highlight-card">
+          <span id="listing-price" class="highlight-value"></span>
+          <span class="highlight-label">List Price</span>
+        </div>
+        <div class="highlight-card">
+          <span id="valuation" class="highlight-value"></span>
+          <span class="highlight-label">Bestimate</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="property-details">
+      <h2 id="property-address"></h2>
+      <div class="stats">
+        <span id="beds"></span>
+        <span class="separator">•</span>
+        <span id="baths"></span>
+        <span class="separator">•</span>
+        <span id="sqft"></span>
+      </div>
+      <div class="additional-details">
+        <div class="detail-row">
+          <span class="detail-label">Days on Market:</span>
+          <span id="days-on-market" class="detail-value">N/A</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Repair Estimate:</span>
+          <span id="repair-costs" class="detail-value">Calculating...</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-container">
+      <div id="chat-history" class="chat-history"></div>
+      <div class="chat-input-container">
+        <input type="text" id="user-question" placeholder="Ask about this property..." />
+        <button id="send-btn">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

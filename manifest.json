@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Zillow Valuation & LLM Chat",
+  "version": "1.0",
+  "description": "Scrape Zillow pages, display a property valuation, and chat with an LLM about the property.",
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://www.zillow.com/*",
+    "https://generativelanguage.googleapis.com/v1beta/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.zillow.com/*"],
+      "js": ["content.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html"
+  }
+}

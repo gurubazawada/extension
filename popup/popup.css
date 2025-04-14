@@ -1,0 +1,305 @@
+:root {
+  --primary: #1a73e8;
+  --primary-light: #e8f0fe;
+  --surface: #ffffff;
+  --text-primary: #202124;
+  --text-secondary: #5f6368;
+  --border: #dadce0;
+  --success: #0cce6b;
+  --success-light: #e6f4ea;
+  --shadow-1: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+  --shadow-2: 0 2px 6px 2px rgba(60, 64, 67, 0.15);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 380px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-primary);
+  background: var(--surface);
+}
+
+.container {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Investment Score */
+.investment-score {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 16px;
+  background: var(--primary-light);
+  border-radius: 12px;
+}
+
+.gauge {
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.gauge-circle {
+  width: 80px;
+  height: 80px;
+}
+
+.gauge-svg {
+  transform: rotate(-90deg);
+}
+
+.gauge-background {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 12;
+}
+
+.gauge-value {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 12;
+  stroke-dasharray: 339.292;
+  stroke-dashoffset: 50.8938; /* Adjusted based on score */
+  transition: stroke-dashoffset 1s ease;
+}
+
+.gauge-text {
+  transform: rotate(90deg);
+  font-size: 32px;
+  font-weight: 700;
+  fill: var(--primary);
+  dominant-baseline: middle;
+}
+
+.gauge-score-label {
+  font-size: 12px;
+  fill: var(--text-secondary);
+  transform: rotate(90deg) translate(0, -20px);
+}
+
+.gauge-label {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.property-highlights {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.highlight-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.highlight-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.highlight-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* Property Details */
+.property-details {
+  padding: 16px;
+  background: var(--surface);
+  border-radius: 8px;
+  box-shadow: var(--shadow-1);
+}
+
+.property-details h2 {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.stats {
+  font-size: 14px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.separator {
+  color: var(--border);
+}
+
+.additional-details {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.detail-row:last-child {
+  margin-bottom: 0;
+}
+
+.detail-label {
+  color: var(--text-secondary);
+}
+
+.detail-value {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* Chat Interface */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.chat-history {
+  max-height: 300px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-right: 8px;
+}
+
+.chat-history::-webkit-scrollbar {
+  width: 4px;
+}
+
+.chat-history::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-history::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.chat-message {
+  padding: 12px;
+  border-radius: 8px;
+  max-width: 85%;
+}
+
+.you-message {
+  align-self: flex-end;
+  background: var(--primary);
+  color: white;
+}
+
+.assistant-message {
+  align-self: flex-start;
+  background: var(--primary-light);
+  color: var(--text-primary);
+}
+
+.system-message {
+  align-self: center;
+  background: #fce8e8;
+  color: #d93025;
+}
+
+.chat-input-container {
+  display: flex;
+  gap: 8px;
+  background: var(--surface);
+  padding: 8px;
+  border-radius: 24px;
+  box-shadow: var(--shadow-1);
+}
+
+#user-question {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+#send-btn {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+#send-btn:hover {
+  background: var(--primary-light);
+}
+
+/* Floating Button for Zillow Pages */
+.bestimate-fab {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 28px;
+  background: var(--primary);
+  color: white;
+  box-shadow: var(--shadow-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 9999;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.bestimate-fab:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px 3px rgba(60, 64, 67, 0.2);
+}
+
+.bestimate-fab-icon {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.bestimate-fab.pulse {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: var(--shadow-2);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px 4px rgba(60, 64, 67, 0.25);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: var(--shadow-2);
+  }
+}

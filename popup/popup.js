@@ -1,3 +1,5 @@
+console.log("popup script running");
+
 // Cache DOM elements
 const elements = {
   address: document.getElementById('property-address'),
@@ -15,73 +17,141 @@ const elements = {
   gaugeText: document.querySelector('.gauge-text')
 };
 
+// --- Add the async getBestimate function ---
+async function getBestimate(propertyData) {
+  console.log("GET BESTIMATE CALLED with propertyData:", propertyData);
+  // Construct the API endpoint URL using propertyData
+  const baseUrl = 'https://dev-nextplaceportal-api.azurewebsites.net/Properties/Search'; // Replace with your API endpoint
+  const accountKey = 'DormBuilders';
+  const regex = /([\d\w\s.#\-]+),\s*([\w\s]+),\s*([A-Z]{2})\s+(\d{5})/;
+  const match = propertyData.address.match(regex);
+  if (!match) {
+    console.error("Regex failed. propertyData.address:", propertyData.address);
+    throw new Error('Failed to parse address: ' + propertyData.address);  
+  }
+
+  const street = match[1].trim();
+  const city = match[2].trim();
+  const state = match[3].trim();
+  const zip = match[4].trim();
+
+  // URL encode the street address and city
+  const encodedStreet = encodeURIComponent(street);
+  const encodedCity = encodeURIComponent(city);
+
+  // const params = new URLSearchParams({
+  //   accountKey: accountKey,
+  //   AddressFilter: encodedAddress,
+  //   CityFilter: encodedCity,
+  //   StateFilter: state,
+  //   ZipCodeFilter: zip,
+  //   ItemsPerPage: "1"
+  // });
+
+  console.log("street:", street);
+  console.log("encodedAddress:", encodedStreet);
+
+  const nextplaceRes = await fetch(
+    `https://dev-nextplaceportal-api.azurewebsites.net/Properties/Search?&accountKey=DormBuilders&AddressFilter=${encodedStreet}&CityFilter=${encodedCity}&StateFilter=${state}&ZipCodeFilter=${zip}&ItemsPerPage=1`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
+      
+  // console.log("API CALL URL:", url);
+
+  if (!nextplaceRes.ok) {
+    throw new Error('Failed to fetch property data from Nextplace');
+  }
+
+  const nextplaceData = await nextplaceRes.json();
+  if (nextplaceData.length === 0) {
+    throw new Error('No property data found');
+  }
+  const property = nextplaceData[0];
+  const bestimatePrice = property.averageSalePrice;
+  return bestimatePrice
+
+}
+
 // Calculate investment score based on price difference
 function calculateInvestmentScore(propertyData) {
   try {
     const listingPrice = parseInt(propertyData.listingPrice.replace(/[^0-9]/g, ''));
-    const bestimatePrice = listingPrice * 0.95; // Our estimate is 5% lower
-    
+    // For now, bestimate is 5% lower than listing
+    const bestimatePrice = listingPrice * 0.95; 
     // Calculate price difference percentage
     const priceDiff = listingPrice - bestimatePrice;
     const priceDiffPercentage = (priceDiff / listingPrice) * 100;
-    
     // Base score calculation
-    // Higher difference = better investment potential
-    let score = 50; // Start at neutral
-    
-    // Add points based on price difference
-    score += priceDiffPercentage * 10; // Each % difference adds 10 points
-    
-    // Additional factors
+    let score = 50; // Start at neutral and adjust accordingly
+    score += priceDiffPercentage * 10;
     const sqft = parseInt(propertyData.sqft.replace(/[^0-9]/g, ''));
     const pricePerSqft = listingPrice / sqft;
-    
-    // Adjust for price per sqft (local market factors)
     if (pricePerSqft < 200) score += 10;
     else if (pricePerSqft > 400) score -= 10;
-    
-    // Adjust for property size
     const beds = parseInt(propertyData.beds);
-    if (beds >= 3 && beds <= 4) score += 5; // Ideal family size
-    
-    // Ensure score stays within 0-100 and round to nearest integer
+    if (beds >= 3 && beds <= 4) score += 5;
     return Math.round(Math.max(0, Math.min(100, score)));
   } catch (error) {
     console.error('Error calculating investment score:', error);
-    return 70; // Default fallback score
+    return 70;
   }
 }
 
 // Update the gauge visualization
 function updateGauge(score) {
-  // Calculate stroke-dashoffset
-  // Circle circumference is 339.292 (2 * π * 54)
   const maxOffset = 339.292;
   const offset = maxOffset - (score / 100) * maxOffset;
-  
   elements.gaugeValue.style.strokeDasharray = maxOffset;
   elements.gaugeValue.style.strokeDashoffset = offset;
   elements.gaugeText.textContent = Math.round(score);
-
-  // Update color based on score
   let color;
-  if (score >= 80) color = '#0cce6b'; // Green
-  else if (score >= 60) color = '#1a73e8'; // Blue
-  else if (score >= 40) color = '#fbbc04'; // Yellow
-  else color = '#ea4335'; // Red
-
+  if (score >= 80) color = '#0cce6b';
+  else if (score >= 60) color = '#1a73e8';
+  else if (score >= 40) color = '#fbbc04';
+  else color = '#ea4335';
   elements.gaugeValue.style.stroke = color;
   elements.gaugeText.style.fill = color;
 }
 
-// Dummy valuation function (hardcoded to 5% lower than listing)
-function getValuation(propertyData) {
-  const basePrice = parseInt(propertyData.listingPrice.replace(/[^0-9]/g, ''));
-  return new Intl.NumberFormat('en-US', {
+// Use the async getBestimate to update valuation display
+async function updatePropertyUI(propertyData) {
+  console.log("updatePropertyUI called with propertyData:", propertyData);
+  
+  if (!propertyData || Object.keys(propertyData).length === 0) {
+    console.log("updatePropertyUI: No property data available.");
+    elements.address.textContent = 'No property data available';
+    return;
+  }
+  
+  console.log("Updating UI with property data...");
+  elements.address.textContent = propertyData.address;
+  elements.listingPrice.textContent = propertyData.listingPrice;
+  elements.beds.textContent = `${propertyData.beds} beds`;
+  elements.baths.textContent = `${propertyData.baths} baths`;
+  elements.sqft.textContent = `${propertyData.sqft} sqft`;
+  elements.daysOnMarket.textContent = propertyData.daysOnMarket || 'N/A';
+  
+  console.log("Before calling getBestimate with propertyData:", propertyData);
+  const bestimatePrice = await getBestimate(propertyData);
+  console.log("getBestimate returned:", bestimatePrice);
+  
+  const valuationFormatted = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
     maximumFractionDigits: 0
-  }).format(basePrice * 0.95);
+  }).format(bestimatePrice);
+  elements.valuation.textContent = valuationFormatted;
+  
+  // Get and update repair estimate (as before)
+  const repairEstimate = await getRepairEstimate(propertyData);
+  elements.repairCosts.textContent = repairEstimate;
+  
+  const score = calculateInvestmentScore(propertyData);
+  updateGauge(score);
 }
 
 // Get repair cost estimate using Gemini
@@ -121,33 +191,6 @@ Format your response as a single number without commas, currency symbols, or exp
     console.error('Error getting repair estimate:', error);
     return 'Unable to estimate repairs';
   }
-}
-
-// Update UI with property data
-async function updatePropertyUI(propertyData) {
-  if (!propertyData || Object.keys(propertyData).length === 0) {
-    elements.address.textContent = 'No property data available';
-    return;
-  }
-
-  elements.address.textContent = propertyData.address;
-  elements.listingPrice.textContent = propertyData.listingPrice;
-  elements.beds.textContent = `${propertyData.beds} beds`;
-  elements.baths.textContent = `${propertyData.baths} baths`;
-  elements.sqft.textContent = `${propertyData.sqft} sqft`;
-  elements.daysOnMarket.textContent = propertyData.daysOnMarket || 'N/A';
-
-  // Update valuation
-  const valuation = getValuation(propertyData);
-  elements.valuation.textContent = valuation;
-
-  // Get and update repair estimate
-  const repairEstimate = await getRepairEstimate(propertyData);
-  elements.repairCosts.textContent = repairEstimate;
-
-  // Calculate and update investment score
-  const score = calculateInvestmentScore(propertyData);
-  updateGauge(score);
 }
 
 // Chat message handling
@@ -257,6 +300,8 @@ elements.questionInput.addEventListener('keypress', (e) => {
 });
 
 // Initial load of property data
+console.log("Sending GET_PROPERTY_DATA message on initial load...");
 chrome.runtime.sendMessage({ type: 'GET_PROPERTY_DATA' }, (response) => {
+  console.log("GET_PROPERTY_DATA response received:", response);
   updatePropertyUI(response);
 });

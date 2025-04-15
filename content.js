@@ -138,7 +138,7 @@
       attributes: true
     });
   }
-
+  
   // Initial load
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', handleDOMChanges);

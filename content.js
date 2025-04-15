@@ -1,6 +1,70 @@
 (function() {
+  let lastPropertyUrl = '';
+  let lastBestimatePrice = 0;
+
+  async function getBestimate(propertyData) {
+    console.log("GET BESTIMATE CALLED in content.js with propertyData:", propertyData);
+    // Construct the API endpoint URL using propertyData
+    const baseUrl = 'https://dev-nextplaceportal-api.azurewebsites.net/Properties/Search'; // Replace with your API endpoint
+    const regex = /([\d\w\s.#\-]+),\s*([\w\s]+),\s*([A-Z]{2})\s+(\d{5})/;
+    const match = propertyData.address.match(regex);
+    if (!match) {
+      console.error("Regex failed. propertyData.address:", propertyData.address);
+      throw new Error('Failed to parse address: ' + propertyData.address);  
+    }
+
+    const street = match[1].trim();
+    const city = match[2].trim();
+    const state = match[3].trim();
+    const zip = match[4].trim();
+
+    // URL encode the street address and city
+    const encodedStreet = encodeURIComponent(street);
+    const encodedCity = encodeURIComponent(city);
+
+    // const params = new URLSearchParams({
+    //   accountKey: accountKey,
+    //   AddressFilter: encodedAddress,
+    //   CityFilter: encodedCity,
+    //   StateFilter: state,
+    //   ZipCodeFilter: zip,
+    //   ItemsPerPage: "1"
+    // });
+
+    console.log("street:", street);
+    console.log("encodedAddress:", encodedStreet);
+
+    const apiKey = "DormBuilders"
+    const apiUrl = `${baseUrl}?&accountKey=${apiKey}&AddressFilter=${encodedStreet}&CityFilter=${encodedCity}&StateFilter=${state}&ZipCodeFilter=${zip}&ItemsPerPage=1`
+
+    const nextplaceRes = await fetch(
+      apiUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+    
+    console.log("API CALL URL:", apiUrl);
+
+    if (!nextplaceRes.ok) {
+      throw new Error('Failed to fetch property data from Nextplace');
+    }
+
+    const nextplaceData = await nextplaceRes.json();
+    if (nextplaceData.length === 0) {
+      throw new Error('No property data found');
+    }
+    const property = nextplaceData[0];
+    const bestimatePrice = property.averageSalePrice;
+
+    console.log("Bestimate price in content.js function:", bestimatePrice);
+    return bestimatePrice
+  }
+
   // Create inline Bestimate display
-  function createInlineBestimate(propertyData) {
+  function createInlineBestimate(propertyData, bestimatePrice) {
     if (document.querySelector('.bestimate-inline')) return;
 
     // Try both price selectors
@@ -9,13 +73,13 @@
       setTimeout(() => createInlineBestimate(propertyData), 1000);
       return;
     }
-
-    const listingPrice = parseInt(propertyData.listingPrice.replace(/[^0-9]/g, ''));
+    console.log("Bestimate price in createInlineBestimate function:", bestimatePrice);
+    // const listingPrice = parseInt(propertyData.listingPrice.replace(/[^0-9]/g, ''));
     const bestimatePriceFormatted = new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       maximumFractionDigits: 0
-    }).format(listingPrice * 0.95);
+    }).format(bestimatePrice);
 
     const bestimate = document.createElement('span');
     bestimate.className = 'bestimate-inline';
@@ -53,7 +117,7 @@
   }
 
   // Function to scrape property data
-  function scrapePropertyData() {
+  async function scrapePropertyData() {
     // Find the price element (try both selectors)
     const priceElement = document.querySelector('[data-testid="price"], .price-text');
     const listingPrice = priceElement?.innerText || 'Price not found';
@@ -111,7 +175,22 @@
 
     // Send data to background script and create UI
     chrome.runtime.sendMessage({ type: 'PROPERTY_DATA', data: propertyData });
-    createInlineBestimate(propertyData);
+    if (propertyData.url !== lastPropertyUrl && propertyData.address !== 'Address not found') {
+
+      lastPropertyUrl = propertyData.url;
+      console.log("new property URL, calling bestimate function");
+      let newBestimatePrice = await getBestimate(propertyData);
+      lastBestimatePrice = newBestimatePrice;
+      createInlineBestimate(propertyData, newBestimatePrice);
+
+    } else if (propertyData.url == lastPropertyUrl) {
+
+      console.log("Property URL hasn't changed, skipping UI update");
+      console.log("lastBestimatePrice:", lastBestimatePrice);
+      createInlineBestimate(propertyData, lastBestimatePrice);
+      
+    }
+    // createInlineBestimate(propertyData);
   }
 
   // Function to handle DOM changes

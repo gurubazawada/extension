@@ -19,10 +19,9 @@ const elements = {
 
 // --- Add the async getBestimate function ---
 async function getBestimate(propertyData) {
-  console.log("GET BESTIMATE CALLED with propertyData:", propertyData);
+  console.log("GET BESTIMATE CALLED in popup.js with propertyData:", propertyData);
   // Construct the API endpoint URL using propertyData
   const baseUrl = 'https://dev-nextplaceportal-api.azurewebsites.net/Properties/Search'; // Replace with your API endpoint
-  const accountKey = 'DormBuilders';
   const regex = /([\d\w\s.#\-]+),\s*([\w\s]+),\s*([A-Z]{2})\s+(\d{5})/;
   const match = propertyData.address.match(regex);
   if (!match) {
@@ -39,20 +38,14 @@ async function getBestimate(propertyData) {
   const encodedStreet = encodeURIComponent(street);
   const encodedCity = encodeURIComponent(city);
 
-  // const params = new URLSearchParams({
-  //   accountKey: accountKey,
-  //   AddressFilter: encodedAddress,
-  //   CityFilter: encodedCity,
-  //   StateFilter: state,
-  //   ZipCodeFilter: zip,
-  //   ItemsPerPage: "1"
-  // });
-
   console.log("street:", street);
   console.log("encodedAddress:", encodedStreet);
 
+  const apiKey = "DormBuilders"
+  const apiUrl = `${baseUrl}?&accountKey=${apiKey}&AddressFilter=${encodedStreet}&CityFilter=${encodedCity}&StateFilter=${state}&ZipCodeFilter=${zip}&ItemsPerPage=1`
+
   const nextplaceRes = await fetch(
-    `https://dev-nextplaceportal-api.azurewebsites.net/Properties/Search?&accountKey=DormBuilders&AddressFilter=${encodedStreet}&CityFilter=${encodedCity}&StateFilter=${state}&ZipCodeFilter=${zip}&ItemsPerPage=1`, {
+    apiUrl, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -60,7 +53,7 @@ async function getBestimate(propertyData) {
       }
     });
       
-  // console.log("API CALL URL:", url);
+  console.log("API CALL URL:", apiUrl);
 
   if (!nextplaceRes.ok) {
     throw new Error('Failed to fetch property data from Nextplace');
@@ -70,18 +63,20 @@ async function getBestimate(propertyData) {
   if (nextplaceData.length === 0) {
     throw new Error('No property data found');
   }
-  const property = nextplaceData[0];
-  const bestimatePrice = property.averageSalePrice;
+
+  // const property = nextplaceData[0];
+  const bestimatePrice = nextplaceData[0].averageSalePrice;
+  console.log("IN BESTIMATE PRICE: ", bestimatePrice);
   return bestimatePrice
 
 }
 
 // Calculate investment score based on price difference
-function calculateInvestmentScore(propertyData) {
+function calculateInvestmentScore(propertyData, bestimatePrice) {
   try {
     const listingPrice = parseInt(propertyData.listingPrice.replace(/[^0-9]/g, ''));
     // For now, bestimate is 5% lower than listing
-    const bestimatePrice = listingPrice * 0.95; 
+    // const bestimatePrice = listingPrice * 0.95; 
     // Calculate price difference percentage
     const priceDiff = listingPrice - bestimatePrice;
     const priceDiffPercentage = (priceDiff / listingPrice) * 100;
@@ -118,7 +113,7 @@ function updateGauge(score) {
 }
 
 // Use the async getBestimate to update valuation display
-async function updatePropertyUI(propertyData) {
+async function updatePropertyUI(propertyData, bestimatePrice) {
   console.log("updatePropertyUI called with propertyData:", propertyData);
   
   if (!propertyData || Object.keys(propertyData).length === 0) {
@@ -135,8 +130,8 @@ async function updatePropertyUI(propertyData) {
   elements.sqft.textContent = `${propertyData.sqft} sqft`;
   elements.daysOnMarket.textContent = propertyData.daysOnMarket || 'N/A';
   
-  console.log("Before calling getBestimate with propertyData:", propertyData);
-  const bestimatePrice = await getBestimate(propertyData);
+  // console.log("Before calling getBestimate with propertyData:", propertyData);
+  // const bestimatePrice = await getBestimate(propertyData);
   console.log("getBestimate returned:", bestimatePrice);
   
   const valuationFormatted = new Intl.NumberFormat('en-US', {
@@ -150,11 +145,14 @@ async function updatePropertyUI(propertyData) {
   const repairEstimate = await getRepairEstimate(propertyData);
   elements.repairCosts.textContent = repairEstimate;
   
-  const score = calculateInvestmentScore(propertyData);
+  const score = calculateInvestmentScore(propertyData, bestimatePrice);
   updateGauge(score);
 }
 
 // Get repair cost estimate using Gemini
+
+// should the prompt also include bestimate vs listing price diff?
+
 async function getRepairEstimate(propertyData) {
   const geminiApiKey = 'AIzaSyD1AoYOKFwzfzOuZkjunOuIkQH2ug6rQGU';
   const prompt = `You are an experienced real estate investor. Based on this property's description and details, estimate the repair costs needed to flip this property for maximum profit. Only provide a single number representing the average repair cost estimate.
@@ -301,7 +299,8 @@ elements.questionInput.addEventListener('keypress', (e) => {
 
 // Initial load of property data
 console.log("Sending GET_PROPERTY_DATA message on initial load...");
-chrome.runtime.sendMessage({ type: 'GET_PROPERTY_DATA' }, (response) => {
+chrome.runtime.sendMessage({ type: 'GET_PROPERTY_DATA' }, async (response) => {
   console.log("GET_PROPERTY_DATA response received:", response);
-  updatePropertyUI(response);
+  bestimatePrice = await getBestimate(response);
+  updatePropertyUI(response, bestimatePrice);
 });

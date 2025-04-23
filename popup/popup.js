@@ -44,16 +44,14 @@ async function getBestimate(propertyData) {
   const apiKey = "DormBuilders"
   const apiUrl = `${baseUrl}?&accountKey=${apiKey}&AddressFilter=${encodedStreet}&CityFilter=${encodedCity}&StateFilter=${state}&ZipCodeFilter=${zip}&ItemsPerPage=1`
 
+  console.log("API CALL URL:", apiUrl);
+
   const nextplaceRes = await fetch(
     apiUrl, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      }
+      method: 'GET'
     });
-      
-  console.log("API CALL URL:", apiUrl);
+  
+  console.log("Response status:", nextplaceRes.status);
 
   if (!nextplaceRes.ok) {
     throw new Error('Failed to fetch property data from Nextplace');
@@ -65,7 +63,7 @@ async function getBestimate(propertyData) {
   }
 
   // const property = nextplaceData[0];
-  const bestimatePrice = nextplaceData[0].averageSalePrice;
+  const bestimatePrice = await nextplaceData[0].averageSalePrice;
   console.log("IN BESTIMATE PRICE: ", bestimatePrice);
   return bestimatePrice
 
@@ -301,6 +299,6 @@ elements.questionInput.addEventListener('keypress', (e) => {
 console.log("Sending GET_PROPERTY_DATA message on initial load...");
 chrome.runtime.sendMessage({ type: 'GET_PROPERTY_DATA' }, async (response) => {
   console.log("GET_PROPERTY_DATA response received:", response);
-  bestimatePrice = await getBestimate(response);
+  const bestimatePrice = await getBestimate(response);
   updatePropertyUI(response, bestimatePrice);
 });

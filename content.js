@@ -167,16 +167,26 @@
 
     // Send data to background script and create UI
     chrome.runtime.sendMessage({ type: 'PROPERTY_DATA', data: propertyData });
+    console.log("current property URL:", propertyData.url);
+    console.log("lastPropertyUrl:", lastPropertyUrl);
     if (propertyData.url !== lastPropertyUrl && propertyData.address !== 'Address not found') {
+
       lastPropertyUrl = propertyData.url;
+
       console.log("new property URL, calling bestimate function");
+
       let newBestimatePrice = await getBestimate(propertyData);
+
       lastBestimatePrice = newBestimatePrice;
+
       createInlineBestimate(propertyData, newBestimatePrice);
+
     } else if (propertyData.url == lastPropertyUrl) {
+
       console.log("Property URL hasn't changed, skipping UI update");
       console.log("lastBestimatePrice:", lastBestimatePrice);
       createInlineBestimate(propertyData, lastBestimatePrice);
+
     }
 
   }

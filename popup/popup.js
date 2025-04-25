@@ -87,7 +87,9 @@ function calculateInvestmentScore(propertyData, bestimatePrice) {
     else if (pricePerSqft > 400) score -= 10;
     const beds = parseInt(propertyData.beds);
     if (beds >= 3 && beds <= 4) score += 5;
+    console.log("Investment score calculation:", Math.round(Math.max(0, Math.min(100, score))));
     return Math.round(Math.max(0, Math.min(100, score)));
+
   } catch (error) {
     console.error('Error calculating investment score:', error);
     return 70;
@@ -203,6 +205,7 @@ function appendChatMessage(sender, message, isError = false) {
 async function queryGemini(question, propertyData) {
   const geminiApiKey = 'AIzaSyD1AoYOKFwzfzOuZkjunOuIkQH2ug6rQGU';
   const score = calculateInvestmentScore(propertyData);
+  console.log("Bestimate score for Gemini query:", elements.valuation.textContent);
 
   const context = `Property Details:
 - Address: ${propertyData.address}
@@ -210,7 +213,7 @@ async function queryGemini(question, propertyData) {
 - Bedrooms: ${propertyData.beds}
 - Bathrooms: ${propertyData.baths}
 - Square Footage: ${propertyData.sqft}
-- Our Estimated Value: ${elements.valuation.textContent}
+- Our Estimated Value ("Bestimate"): ${elements.valuation.textContent}
 - Repair Cost Estimate: ${elements.repairCosts.textContent}
 - Days on Market: ${propertyData.daysOnMarket || 'N/A'}
 - Investment Score: ${score}/100

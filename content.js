@@ -55,7 +55,29 @@
 
   // Create inline Bestimate display
   function createInlineBestimate(propertyData, bestimatePrice) {
-    if (document.querySelector('.bestimate-inline')) return;
+    if (document.querySelector('.bestimate-inline')) {
+      console.log("Bestimate already exists, updating with latest bestimate.");
+
+      let bestimateSpan = document.querySelector('.bestimate-inline');
+      // console.log(bestimateSpan.firstChild);
+      console.log(bestimateSpan.childNodes);
+
+      // bestimateSpan.childNodes[1].textContent = `Bestimate: ${new Intl.NumberFormat('en-US', {
+      //   style: 'currency',
+      //   currency: 'USD',
+      //   maximumFractionDigits: 0
+      // }).format(bestimatePrice)}`;
+
+      console.log("Bestimate price in createInlineBestimate function:", bestimatePrice);
+      // bestimateSpan.innerHTML = `
+      //   <span>Bestimate: ${new Intl.NumberFormat('en-US', {
+      //     style: 'currency',
+      //     currency: 'USD',
+      //     maximumFractionDigits: 0
+      //   }).format(bestimatePrice)}</span>
+      // `;
+      return;
+    }
 
     // Try both price selectors
     const priceElement = document.querySelector('[data-testid="price"], .price-text');
@@ -169,6 +191,7 @@
     chrome.runtime.sendMessage({ type: 'PROPERTY_DATA', data: propertyData });
     console.log("current property URL:", propertyData.url);
     console.log("lastPropertyUrl:", lastPropertyUrl);
+
     if (propertyData.url !== lastPropertyUrl && propertyData.address !== 'Address not found') {
 
       lastPropertyUrl = propertyData.url;
@@ -179,13 +202,16 @@
 
       lastBestimatePrice = newBestimatePrice;
 
+      console.log("New bestimate price:", newBestimatePrice);
+      console.log("creating inline bestimate with new price");
+
       createInlineBestimate(propertyData, newBestimatePrice);
 
     } else if (propertyData.url == lastPropertyUrl) {
 
       console.log("Property URL hasn't changed, skipping UI update");
-      console.log("lastBestimatePrice:", lastBestimatePrice);
-      createInlineBestimate(propertyData, lastBestimatePrice);
+      console.log("lastBestimatePrice for this property:", lastBestimatePrice);
+      // createInlineBestimate(propertyData, lastBestimatePrice);
 
     }
 

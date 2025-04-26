@@ -104,6 +104,7 @@ function updateGauge(score) {
   elements.gaugeValue.style.strokeDasharray = maxOffset;
   elements.gaugeValue.style.strokeDashoffset = offset;
   elements.gaugeText.textContent = Math.round(score);
+  elements.gaugeText.setAttribute('y', '-55');
   let color;
   if (score >= 80) color = '#0cce6b';
   else if (score >= 60) color = '#1a73e8';

@@ -167,6 +167,8 @@
       scrapedAt: new Date().toISOString()
     };
 
+    console.log("Scraped property data:", propertyData);
+
     // Send data to background script and create UI
     chrome.runtime.sendMessage({ type: 'PROPERTY_DATA', data: propertyData });
 
@@ -177,6 +179,8 @@
       let newBestimatePrice = await getBestimate(propertyData);
 
       lastBestimatePrice = newBestimatePrice;
+
+      console.log("creating inline bestimate with price:", propertyData, newBestimatePrice);
 
       createInlineBestimate(propertyData, newBestimatePrice);
 
@@ -196,7 +200,7 @@
     const observer = new MutationObserver(() => {
       if (window.location.href.includes('/homes/') || 
           window.location.href.includes('/homedetails/')) {
-        console.log("On property page, checking for price...");
+        // console.log("On property page, checking for price...");
         scrapePropertyData();
       }
     });

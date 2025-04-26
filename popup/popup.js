@@ -150,10 +150,6 @@ async function updatePropertyUI(propertyData, bestimatePrice) {
   updateGauge(score);
 }
 
-// Get repair cost estimate using Gemini
-
-// should the prompt also include bestimate vs listing price diff?
-
 async function getRepairEstimate(propertyData) {
   const geminiApiKey = 'AIzaSyD1AoYOKFwzfzOuZkjunOuIkQH2ug6rQGU';
   const prompt = `You are an experienced real estate investor. Based on this property's description and details, estimate the repair costs needed to flip this property for maximum profit. Only provide a single number representing the average repair cost estimate.
@@ -221,7 +217,7 @@ async function queryGemini(question, propertyData) {
 
 Property Description: ${propertyData.description}
 
-You are an expert real estate AI assistant named Bestimate. Provide thoughtful analysis about this property using the details above. Consider repair costs and days on market when analyzing investment potential. Only answer questions that are relevant to real estate and this specific property.
+You are an expert real estate AI assistant named Bestimate. Provide thoughtful analysis about this property using the details above. Consider repair costs and days on market when analyzing investment potential. Only answer questions that are relevant to real estate and this specific property. Limit your response to 2-3 sentences. Don't include any formatting of the text.
 
 Question: ${question}`;
 

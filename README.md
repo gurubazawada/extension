@@ -2,7 +2,7 @@
 
 ## Description
 
-This extension scrapes Zillow pages, displays a property valuation, and allows you to chat with an LLM about the property.
+DealScout is a robust real estate analysis extension designed specifically for Zillow property pages. It automatically extracts detailed property information, computes an in-depth valuation using advanced market data analytics, and offers an interactive chat interface powered by a large language model to provide insights and answer your property-related queries. Ideal for investors, home buyers, and real estate enthusiasts seeking a smarter way to evaluate properties.
 
 ## Usage
 

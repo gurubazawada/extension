@@ -72,6 +72,7 @@ async function getBestimate(propertyData) {
 // Calculate investment score based on price difference
 function calculateInvestmentScore(propertyData, bestimatePrice) {
   try {
+    console.log("calculating investment score with propertyData:", propertyData);
     const listingPrice = parseInt(propertyData.listingPrice.replace(/[^0-9]/g, ''));
     // For now, bestimate is 5% lower than listing
     // const bestimatePrice = listingPrice * 0.95; 

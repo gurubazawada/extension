@@ -3,7 +3,7 @@
   let lastBestimatePrice = 0;
 
   async function getBestimate(propertyData) {
-  console.log("GET BESTIMATE CALLED in popup.js with propertyData:", propertyData);
+  console.log("GET BESTIMATE CALLED in content.js with propertyData:", propertyData);
   // Construct the API endpoint URL using propertyData
   const baseUrl = 'https://dev-nextplaceportal-api.azurewebsites.net/Properties/Search'; // Replace with your API endpoint
   const regex = /([\d\w\s.#\-]+),\s*([\w\s]+),\s*([A-Z]{2})\s+(\d{5})/;
@@ -22,9 +22,6 @@
   const encodedStreet = encodeURIComponent(street);
   const encodedCity = encodeURIComponent(city);
 
-  console.log("street:", street);
-  console.log("encodedAddress:", encodedStreet);
-
   const apiKey = "DormBuilders"
   const apiUrl = `${baseUrl}?&accountKey=${apiKey}&AddressFilter=${encodedStreet}&CityFilter=${encodedCity}&StateFilter=${state}&ZipCodeFilter=${zip}&ItemsPerPage=1`
 
@@ -34,8 +31,6 @@
     apiUrl, {
       method: 'GET'
     });
-  
-  console.log("Response status:", nextplaceRes.status);
 
   if (!nextplaceRes.ok) {
     throw new Error('Failed to fetch property data from Nextplace');
@@ -48,7 +43,6 @@
 
   // const property = nextplaceData[0];
   const bestimatePrice = await nextplaceData[0].averageSalePrice;
-  console.log("IN BESTIMATE PRICE: ", bestimatePrice);
   return bestimatePrice
 
 }
@@ -56,26 +50,6 @@
   // Create inline Bestimate display
   function createInlineBestimate(propertyData, bestimatePrice) {
     if (document.querySelector('.bestimate-inline')) {
-      console.log("Bestimate already exists, updating with latest bestimate.");
-
-      let bestimateSpan = document.querySelector('.bestimate-inline');
-      // console.log(bestimateSpan.firstChild);
-      console.log(bestimateSpan.childNodes);
-
-      // bestimateSpan.childNodes[1].textContent = `Bestimate: ${new Intl.NumberFormat('en-US', {
-      //   style: 'currency',
-      //   currency: 'USD',
-      //   maximumFractionDigits: 0
-      // }).format(bestimatePrice)}`;
-
-      console.log("Bestimate price in createInlineBestimate function:", bestimatePrice);
-      // bestimateSpan.innerHTML = `
-      //   <span>Bestimate: ${new Intl.NumberFormat('en-US', {
-      //     style: 'currency',
-      //     currency: 'USD',
-      //     maximumFractionDigits: 0
-      //   }).format(bestimatePrice)}</span>
-      // `;
       return;
     }
 
@@ -85,8 +59,7 @@
       setTimeout(() => createInlineBestimate(propertyData), 1000);
       return;
     }
-    console.log("Bestimate price in createInlineBestimate function:", bestimatePrice);
-    // const listingPrice = parseInt(propertyData.listingPrice.replace(/[^0-9]/g, ''));
+
     const bestimatePriceFormatted = new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -139,20 +112,29 @@
     const address = addressElement?.innerText || 'Address not found';
 
     // Find all bed/bath/sqft containers and their values
-    const factContainers = document.querySelectorAll('[data-testid="bed-bath-sqft-text__container"]');
+    const factContainers = document.querySelectorAll('[data-testid="bed-bath-sqft-fact-container"]');
     let beds = '0', baths = '0', sqft = '0';
 
     // Iterate through containers to find values based on their description
+    console.log("Fact containers found:", factContainers.length);
     factContainers.forEach(container => {
-      const value = container.querySelector('[data-testid="bed-bath-sqft-text__value"]')?.innerText || '';
-      const description = container.querySelector('[data-testid="bed-bath-sqft-text__description"]')?.innerText?.toLowerCase() || '';
+      // const value = container.querySelector('[data-testid="bed-bath-sqft-text__value"]')?.innerText || '';
+      // const description = container.querySelector('[data-testid="bed-bath-sqft-text__description"]')?.innerText?.toLowerCase() || '';
+
+      const value = container.children[0]?.innerText || '';
+      const description = container.children[1]?.innerText?.toLowerCase() || '';
       
+      console.log("scraping containers");
+
       if (description.includes('bed')) {
         beds = value;
+        console.log("Beds found:", beds);
       } else if (description.includes('bath')) {
         baths = value;
+        console.log("Baths found:", baths);
       } else if (description.includes('sqft')) {
         sqft = value;
+        console.log("Sqft found:", sqft);
       }
     });
 
@@ -185,36 +167,20 @@
       scrapedAt: new Date().toISOString()
     };
 
-    console.log("Scraped property data, calling createInlineBestimate");
-
     // Send data to background script and create UI
     chrome.runtime.sendMessage({ type: 'PROPERTY_DATA', data: propertyData });
-    console.log("current property URL:", propertyData.url);
-    console.log("lastPropertyUrl:", lastPropertyUrl);
 
     if (propertyData.url !== lastPropertyUrl && propertyData.address !== 'Address not found') {
 
       lastPropertyUrl = propertyData.url;
 
-      console.log("new property URL, calling bestimate function");
-
       let newBestimatePrice = await getBestimate(propertyData);
 
       lastBestimatePrice = newBestimatePrice;
 
-      console.log("New bestimate price:", newBestimatePrice);
-      console.log("creating inline bestimate with new price");
-
       createInlineBestimate(propertyData, newBestimatePrice);
 
-    } else if (propertyData.url == lastPropertyUrl) {
-
-      console.log("Property URL hasn't changed, skipping UI update");
-      console.log("lastBestimatePrice for this property:", lastBestimatePrice);
-      // createInlineBestimate(propertyData, lastBestimatePrice);
-
     }
-
   }
 
   // Function to handle DOM changes

@@ -171,6 +171,7 @@
 
     // Send data to background script and create UI
     chrome.runtime.sendMessage({ type: 'PROPERTY_DATA', data: propertyData });
+    console.log("last bestimate price:", lastBestimatePrice);
 
     if (propertyData.url !== lastPropertyUrl && propertyData.address !== 'Address not found') {
 

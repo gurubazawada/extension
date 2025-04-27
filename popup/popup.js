@@ -72,28 +72,34 @@ async function getBestimate(propertyData) {
 // Calculate investment score based on price difference
 function calculateInvestmentScore(propertyData, bestimatePrice) {
   try {
-    console.log("calculating investment score with propertyData:", propertyData);
+    console.log("Calculating investment score with propertyData:", propertyData);
     const listingPrice = parseInt(propertyData.listingPrice.replace(/[^0-9]/g, ''));
-    // For now, bestimate is 5% lower than listing
-    // const bestimatePrice = listingPrice * 0.95; 
+    let score = 50; // Start at a neutral base score
+
     // Calculate price difference percentage
-    const priceDiff = listingPrice - bestimatePrice;
-    const priceDiffPercentage = (priceDiff / listingPrice) * 100;
-    // Base score calculation
-    let score = 50; // Start at neutral and adjust accordingly
+    const priceDiffPercentage = ((bestimatePrice - listingPrice) / listingPrice) * 100;
+
+    // Adjust score based on price difference
     score += priceDiffPercentage * 10;
+
+    // Adjust based on price per square foot
     const sqft = parseInt(propertyData.sqft.replace(/[^0-9]/g, ''));
     const pricePerSqft = listingPrice / sqft;
-    if (pricePerSqft < 200) score += 10;
-    else if (pricePerSqft > 400) score -= 10;
+    if (pricePerSqft < 200) score += 10; // Favorable if price per sqft is low
+    else if (pricePerSqft > 400) score -= 10; // Penalize if price per sqft is high
+
+    // Adjust based on number of bedrooms
     const beds = parseInt(propertyData.beds);
-    if (beds >= 3 && beds <= 4) score += 5;
-    console.log("Investment score calculation:", Math.round(Math.max(0, Math.min(100, score))));
-    return Math.round(Math.max(0, Math.min(100, score)));
+    if (beds >= 3 && beds <= 4) score += 5; // Favorable for 3-4 bedrooms
+
+    // Clamp the score between 0 and 100
+    const finalScore = Math.round(Math.max(0, Math.min(100, score)));
+    console.log("Investment score calculation:", finalScore);
+    return finalScore;
 
   } catch (error) {
     console.error('Error calculating investment score:', error);
-    return 70;
+    return 70; // Default score in case of error
   }
 }
 

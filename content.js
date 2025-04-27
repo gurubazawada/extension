@@ -112,7 +112,7 @@
     const address = addressElement?.innerText || 'Address not found';
 
     // Find all bed/bath/sqft containers and their values
-    const factContainers = document.querySelectorAll('[data-testid="bed-bath-sqft-fact-container"]');
+    const factContainers = document.querySelectorAll('[data-testid="bed-bath-sqft-fact-container"], [data-testid="bed-bath-sqft-text__container"]');
     let beds = '0', baths = '0', sqft = '0';
 
     // Iterate through containers to find values based on their description
